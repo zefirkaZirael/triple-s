@@ -8,7 +8,6 @@ import (
 
 // curl -X PUT http://localhost:8080/mybucket1
 // curl -X GET http://localhost:8080/
-var buckets = make(map[string]bool)
 
 func main() {
 	if len(os.Args) != 3 {

@@ -1,10 +1,15 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
+	"net"
 	"net/http"
+	"os"
 	"regexp"
 )
+
+var buckets = make(map[string]bool)
 
 // Function to create buckets
 func createBucketHandler(w http.ResponseWriter, r *http.Request) {
@@ -31,6 +36,12 @@ func createBucketHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Create bucket
 		buckets[bucketName] = true
+		if err := appendBucketToCSV(bucketName); err != nil {
+			http.Error(w, "Failed to save bucket metadata\n", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK) // Set status code to 200 OK
 		fmt.Fprintf(w, "Bucket '%s' created successfully!\n", bucketName)
 		return
 
@@ -40,15 +51,30 @@ func createBucketHandler(w http.ResponseWriter, r *http.Request) {
 // Function to validate bucket name
 func isValidBucketName(name string) bool {
 	// Regular expression for bucket name validation
-	validNamePattern := `^(?!.*--)(?!.*\.\.)(?!-)(?!.*-$)[a-z0-9.-]{3,63}$`
+	validNamePattern := `^[a-z0-9](?:[a-z0-9.-]{1,61}[a-z0-9])?$`
 	matched, _ := regexp.MatchString(validNamePattern, name)
 
-	// Check if the name is formatted as an IP address (simple check)
-	ipPattern := `^\d{1,3}(\.\d{1,3}){3}$`
-	ipMatched, _ := regexp.MatchString(ipPattern, name)
+	// Check for IP address format (simple check)
+	if net.ParseIP(name) != nil {
+		return false
+	}
 
-	fmt.Println(matched)
-	fmt.Println(ipMatched)
+	return matched
+}
 
-	return matched && !ipMatched
+func appendBucketToCSV(bucketName string) error {
+	file, err := os.OpenFile("buckets.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	if err := writer.Write([]string{bucketName}); err != nil {
+		return err
+	}
+
+	return nil
 }
