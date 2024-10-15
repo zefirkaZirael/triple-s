@@ -1,4 +1,4 @@
-package main
+package back
 
 import (
 	"encoding/csv"
@@ -45,7 +45,7 @@ func readBucketMetadata(filename string) ([]Bucket, error) {
 }
 
 // Function to list all buckets
-func listBuckets(w http.ResponseWriter, r *http.Request) {
+func ListBuckets(w http.ResponseWriter, r *http.Request) {
 	// Make sure to have your CSV file named "buckets.csv"
 	buckets, err := readBucketMetadata("buckets.csv")
 	if err != nil {

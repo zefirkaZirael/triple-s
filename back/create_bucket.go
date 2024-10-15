@@ -1,4 +1,4 @@
-package main
+package back
 
 import (
 	"encoding/csv"
@@ -7,12 +7,13 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"time"
 )
 
 var buckets = make(map[string]bool)
 
 // Function to create buckets
-func createBucketHandler(w http.ResponseWriter, r *http.Request) {
+func CreateBucketHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPut {
 		bucketName := r.URL.Path[1:]
 
@@ -72,7 +73,7 @@ func appendBucketToCSV(bucketName string) error {
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	if err := writer.Write([]string{bucketName}); err != nil {
+	if err := writer.Write([]string{bucketName, time.Now().Format(time.RFC3339)}); err != nil {
 		return err
 	}
 

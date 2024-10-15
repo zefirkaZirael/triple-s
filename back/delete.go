@@ -1,4 +1,4 @@
-package main
+package back
 
 import (
 	"encoding/csv"
@@ -32,13 +32,14 @@ func deleteBucketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !isBucketEmpty(bucketName) {
-		http.Error(w, fmt.Sprintf("Bucket '%s' not found\n", bucketName), http.StatusConflict)
+		http.Error(w, fmt.Sprintf("Bucket '%s' not empty\n", bucketName), http.StatusConflict)
 		return
 	}
+	/////////////////!!?!?!!?!?
 	if bIndex == len(buckets)-1 {
 		buckets = append(buckets[:bIndex])
 	} else {
-		buckets = append(buckets[:bIndex], buckets[bIndex+1]...)
+		buckets = append(buckets[:bIndex], buckets[bIndex+1:]...)
 	}
 	err = saveBucketMetadata("buckets.csv", buckets)
 	if err != nil {

@@ -1,3 +1,3 @@
-module triple-s.go
+module triple-s
 
 go 1.22

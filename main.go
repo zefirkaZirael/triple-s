@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"triple-s/back"
 )
 
 // curl -X PUT http://localhost:8080/mybucket1
@@ -17,9 +19,9 @@ func main() {
 	port := os.Args[1]
 	// dir := os.Args[2]
 
-	http.HandleFunc("/", listBuckets) // Point to the listBuckets handler
+	http.HandleFunc("/", back.ListBuckets) // Point to the listBuckets handler
 	// Set up the handler for creating buckets
-	http.HandleFunc("/{BucketName}", createBucketHandler)
+	http.HandleFunc("/{BucketName}", back.CreateBucketHandler)
 
 	// Start the server on port 8080
 	log.Println("Starting server on port...", port)
