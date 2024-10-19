@@ -72,5 +72,26 @@ func saveBucketMetadata(filename string, buckets []Bucket) error {
 }
 
 func isBucketEmpty(bucketNmae string) bool {
+	file, err:= os.Open(bucketNmae+".csv")
+	if err != nil{
+		// Assume Not empty
+		return true
+	}
+	//?
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	if err != nil {
+		// Assume Not empty
+		return false
+	}
+	for _, record:= range records{
+		if record[0] != ""{
+			//object found so not empty
+			return false
+		}
+	}
+	// Default empty
 	return true
 }
