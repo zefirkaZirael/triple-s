@@ -9,7 +9,6 @@ import (
 
 func deleteBucketHandler(w http.ResponseWriter, r *http.Request) {
 	bucketName := r.URL.Path[1:]
-
 	buckets, err := readBucketMetadata("buckets.csv")
 	if err != nil {
 		http.Error(w, "Failed to read bucket metadata\n", http.StatusInternalServerError)
@@ -35,6 +34,7 @@ func deleteBucketHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Bucket '%s' not empty\n", bucketName), http.StatusConflict)
 		return
 	}
+
 	/////////////////!!?!?!!?!?
 	if bIndex == len(buckets)-1 {
 		buckets = append(buckets[:bIndex])
@@ -46,8 +46,6 @@ func deleteBucketHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to save bucket metadata\n", http.StatusInternalServerError)
 		return
 	}
-
-	// Respond with 204 No Content
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -56,10 +54,9 @@ func saveBucketMetadata(filename string, buckets []Bucket) error {
 	if err != nil {
 		return err
 	}
+	
 	defer file.Close()
-
 	writer := csv.NewWriter(file)
-
 	defer writer.Flush()
 
 	for _, bucket := range buckets {

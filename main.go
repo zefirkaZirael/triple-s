@@ -19,8 +19,7 @@ func main() {
 	port := os.Args[1]
 	// dir := os.Args[2]
 
-	http.HandleFunc("/", back.ListBuckets) // Point to the listBuckets handler
-	// Set up the handler for creating buckets
+	http.HandleFunc("/", back.ListBuckets)
 	http.HandleFunc("/{BucketName}", back.CreateBucketHandler)
 
 	// Start the server on port 8080

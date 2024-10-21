@@ -20,7 +20,6 @@ type ListBucketResponse struct {
 	Buckets []Bucket `xml:"Bucket"`
 }
 
-// Read bucket metadata from a CSV file
 func readBucketMetadata(filename string) ([]Bucket, error) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -44,9 +43,7 @@ func readBucketMetadata(filename string) ([]Bucket, error) {
 	return buckets, nil
 }
 
-// Function to list all buckets
 func ListBuckets(w http.ResponseWriter, r *http.Request) {
-	// Make sure to have your CSV file named "buckets.csv"
 	buckets, err := readBucketMetadata("buckets.csv")
 	if err != nil {
 		http.Error(w, "Failed to read bucket metadata\n", http.StatusInternalServerError)
@@ -67,15 +64,11 @@ func ListBuckets(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := ListBucketResponse{Buckets: buckets}
-
-	// Set the content type to XML
 	w.Header().Set("Content-Type", "application/xml")
 	w.WriteHeader(http.StatusOK)
-	// For service
 	encoder := xml.NewEncoder(w)
 	encoder.Indent("", "  ")
-
-	// Encode the response as XML and write it to the response writer
+	
 	if err := xml.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Failed to encode XML\n", http.StatusInternalServerError)
 	}
