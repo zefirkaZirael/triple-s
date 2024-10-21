@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 )
 
-func deleteBucketHandler(w http.ResponseWriter, r *http.Request) {
+func DeleteBucketHandler(w http.ResponseWriter, r *http.Request) {
 	bucketName := r.URL.Path[1:]
 	buckets, err := readBucketMetadata("buckets.csv")
 	if err != nil {
@@ -36,16 +37,20 @@ func deleteBucketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	/////////////////!!?!?!!?!?
-	if bIndex == len(buckets)-1 {
-		buckets = append(buckets[:bIndex])
-	} else {
-		buckets = append(buckets[:bIndex], buckets[bIndex+1:]...)
-	}
+	buckets = append(buckets[:bIndex], buckets[bIndex+1:]...)
+
 	err = saveBucketMetadata("buckets.csv", buckets)
 	if err != nil {
 		http.Error(w, "Failed to save bucket metadata\n", http.StatusInternalServerError)
 		return
 	}
+
+	bucketDir := filepath.Join("data", bucketName)
+	if err := os.RemoveAll(bucketDir); err != nil {
+		http.Error(w, "Failed to delete bucket directory\n", http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprintf(w, "Bucket '%s' deleted successfully!\n", bucketName)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -54,7 +59,7 @@ func saveBucketMetadata(filename string, buckets []Bucket) error {
 	if err != nil {
 		return err
 	}
-	
+
 	defer file.Close()
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
@@ -68,24 +73,22 @@ func saveBucketMetadata(filename string, buckets []Bucket) error {
 	return nil
 }
 
-func isBucketEmpty(bucketNmae string) bool {
-	file, err:= os.Open(bucketNmae+".csv")
-	if err != nil{
-		// Assume Not empty
+func isBucketEmpty(bucketName string) bool {
+	csvPath := filepath.Join("data", bucketName, "objects.csv")
+	file, err := os.Open(csvPath)
+	if err != nil {
 		return true
 	}
-	//?
 	defer file.Close()
 
 	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
 	if err != nil {
-		// Assume Not empty
 		return false
 	}
-	for _, record:= range records{
-		if record[0] != ""{
-			//object found so not empty
+	for _, record := range records {
+		if record[0] != "" {
+			// object found so not empty
 			return false
 		}
 	}

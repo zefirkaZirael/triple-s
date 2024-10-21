@@ -1,10 +1,10 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
-	"os"
-
 	"triple-s/back"
 )
 
@@ -12,19 +12,45 @@ import (
 // curl -X GET http://localhost:8080/
 
 func main() {
-	if len(os.Args) != 3 {
-		log.Fatal("Usage: go run main.go <port> <directory_path>")
+	port := flag.Int("port", 8080, "Port to listen on")
+	// dir := os.Args[2]
+	flag.Parse()
+	if *port < 1 || *port > 65535 {
+		log.Fatal("Invalid port number. Please choose a port between 1 and 65535.")
 	}
 
-	port := os.Args[1]
-	// dir := os.Args[2]
+	log.Println("Starting server on port...", *port)
 
-	http.HandleFunc("/", back.ListBuckets)
-	http.HandleFunc("/{BucketName}", back.CreateBucketHandler)
+	http.HandleFunc("/", back.ListBuckets)          // List all buckets
+	http.HandleFunc("/{BucketName}", bucketHandler) // Create a bucket
+	http.HandleFunc("/{BucketName}/{ObjectKey}", objectHandler)
 
-	// Start the server on port 8080
-	log.Println("Starting server on port...", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	addr := fmt.Sprintf(":%d", *port)
+	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func bucketHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPut:
+		back.CreateBucketHandler(w, r)
+	case http.MethodDelete:
+		back.DeleteBucketHandler(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func objectHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPut:
+		back.UploadObject(w, r) // Handle upload
+	case http.MethodGet:
+		back.RetrieveObject(w, r) // Handle retrieval
+	case http.MethodDelete:
+		back.DeleteObject(w, r) // Handle deletion
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }

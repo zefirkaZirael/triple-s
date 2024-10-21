@@ -3,7 +3,6 @@ package back
 import (
 	"encoding/csv"
 	"encoding/xml"
-	"fmt"
 	"net/http"
 	"os"
 )
@@ -49,26 +48,13 @@ func ListBuckets(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to read bucket metadata\n", http.StatusInternalServerError)
 		return
 	}
-	bucketsTrue := make(map[string]bool)
-	for _, bucket := range buckets {
-		if isValidBucketName(bucket.Name) {
-			if bucketsTrue[bucket.Name] {
-				http.Error(w, "Bucket already exists\n", http.StatusConflict)
-				return
-			}
-			bucketsTrue[bucket.Name] = true
-		} else {
-			http.Error(w, fmt.Sprintf("Bucket name '%s' is invalid\n", bucket.Name), http.StatusBadRequest)
-			return
-		}
-	}
 
 	response := ListBucketResponse{Buckets: buckets}
 	w.Header().Set("Content-Type", "application/xml")
 	w.WriteHeader(http.StatusOK)
 	encoder := xml.NewEncoder(w)
 	encoder.Indent("", "  ")
-	
+
 	if err := xml.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Failed to encode XML\n", http.StatusInternalServerError)
 	}
