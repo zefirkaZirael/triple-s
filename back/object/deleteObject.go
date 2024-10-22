@@ -1,31 +1,31 @@
-package back
+package object
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
+	"triple-s/back/helpers"
 )
 
 func DeleteObject(w http.ResponseWriter, r *http.Request) {
-	parts := strings.SplitN(r.URL.Path[1:], "/", 2)
-	if len(parts) < 2 {
-		http.Error(w, "Invalid request path. Format: /{BucketName}/{ObjectKey}\n", http.StatusBadRequest)
+	// Step 1
+	bucketName, objKey, err := helpers.ParseBucketAndObjectKey(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	bucketName := parts[0]
-	objKey := parts[1]
-
-	bucketDir := filepath.Join("data", bucketName)
-	if _, err := os.Stat(bucketDir); os.IsNotExist(err) {
-		http.Error(w, "Bucket not found\n", http.StatusNotFound)
+	// Step 2
+	bucketDir, err := helpers.BucketExists(bucketName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-
+	// Step3
 	objectPath := filepath.Join(bucketDir, objKey)
+
 	if _, err := os.Stat(objectPath); os.IsNotExist(err) {
 		http.Error(w, "Object not found\n", http.StatusNotFound)
 		return
@@ -36,14 +36,14 @@ func DeleteObject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := removeObjectMetadata(bucketDir, objKey); err != nil {
+	if err := removeObjectMetadata(w, bucketDir, objKey); err != nil {
 		http.Error(w, "Failed to update metadata\n", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func removeObjectMetadata(bucketDir, objKey string) error {
+func removeObjectMetadata(w http.ResponseWriter, bucketDir, objKey string) error {
 	csvPath := filepath.Join(bucketDir, "objects.csv")
 	tempPath := filepath.Join(bucketDir, "temp.csv")
 
@@ -51,18 +51,16 @@ func removeObjectMetadata(bucketDir, objKey string) error {
 	if err != nil {
 		return err
 	}
-
 	defer file.Close()
 
 	tempFile, err := os.Create(tempPath)
 	if err != nil {
 		return err
 	}
+	defer tempFile.Close()
 
-	defer file.Close()
 	reader := csv.NewReader(file)
 	writer := csv.NewWriter(tempFile)
-	defer writer.Flush()
 
 	// Copy all entries except the one to be removed
 	for {
@@ -71,17 +69,24 @@ func removeObjectMetadata(bucketDir, objKey string) error {
 			break
 		}
 		if err != nil {
+			fmt.Println(err)
 			return err
 		}
 
 		if record[0] != objKey { // Keep entries that don't match objKey
 			if err := writer.Write(record); err != nil {
+				http.Error(w, "hz rerr\n", http.StatusInternalServerError)
 				return err
 			}
 		}
 	}
+	defer writer.Flush()
+	if err := writer.Error(); err != nil {
+		return err
+	}
 	// Replace the original CSV with the updated one
 	if err := os.Rename(tempPath, csvPath); err != nil {
+		http.Error(w, "replace err\n", http.StatusInternalServerError)
 		return err
 	}
 

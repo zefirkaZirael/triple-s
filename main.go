@@ -5,23 +5,40 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"triple-s/back"
+	"os"
+	"triple-s/back/bucket"
+	"triple-s/back/object"
 )
-
-// curl -X PUT http://localhost:8080/mybucket1
-// curl -X GET http://localhost:8080/
 
 func main() {
 	port := flag.Int("port", 8080, "Port to listen on")
-	// dir := os.Args[2]
+	// dir := falg.String("dir", ".", "Directory path")
+	help := flag.Bool("help", false, "Show helper screen")
+	flag.Usage = func() {
+		fmt.Println("Simple Storage Service.")
+		fmt.Println("\nUsage:")
+		fmt.Println("    triple-s [-port <N>] [-dir <S>]")
+		fmt.Println("    triple-s --help")
+		fmt.Println("\nOptions:")
+		flag.PrintDefaults()
+	}
 	flag.Parse()
+	if *help {
+		flag.Usage()
+		os.Exit(0)
+	}
 	if *port < 1 || *port > 65535 {
 		log.Fatal("Invalid port number. Please choose a port between 1 and 65535.")
 	}
-
 	log.Println("Starting server on port...", *port)
 
-	http.HandleFunc("/", back.ListBuckets)          // List all buckets
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			bucket.ListBuckets(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
 	http.HandleFunc("/{BucketName}", bucketHandler) // Create a bucket
 	http.HandleFunc("/{BucketName}/{ObjectKey}", objectHandler)
 
@@ -34,9 +51,9 @@ func main() {
 func bucketHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPut:
-		back.CreateBucketHandler(w, r)
+		bucket.CreateBucketHandler(w, r)
 	case http.MethodDelete:
-		back.DeleteBucketHandler(w, r)
+		bucket.DeleteBucketHandler(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -45,11 +62,11 @@ func bucketHandler(w http.ResponseWriter, r *http.Request) {
 func objectHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPut:
-		back.UploadObject(w, r) // Handle upload
+		object.UploadObject(w, r) // Handle upload
 	case http.MethodGet:
-		back.RetrieveObject(w, r) // Handle retrieval
+		object.RetrieveObject(w, r) // Handle retrieval
 	case http.MethodDelete:
-		back.DeleteObject(w, r) // Handle deletion
+		object.DeleteObject(w, r) // Handle deletion
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
