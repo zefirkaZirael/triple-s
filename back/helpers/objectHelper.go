@@ -17,7 +17,7 @@ func ParseBucketAndObjectKey(r *http.Request) (string, string, error) {
 }
 
 func BucketExists(bucketName string) (string, error) {
-	bucketDir := filepath.Join("data", bucketName)
+	bucketDir := filepath.Join(BucketPath, bucketName)
 	if _, err := os.Stat(bucketDir); os.IsNotExist(err) {
 		return "", fmt.Errorf("bucket not found\n")
 	}

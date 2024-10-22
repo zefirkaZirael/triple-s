@@ -40,7 +40,7 @@ func CreateBucketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bucketDir := filepath.Join("data/", bucketName)
+	bucketDir := filepath.Join(helpers.BucketPath, bucketName)
 	// Create bucket
 	err := os.MkdirAll(bucketDir, 0o755)
 	if err != nil {
@@ -50,5 +50,4 @@ func CreateBucketHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK) // Set status code to 200 OK
 	fmt.Fprintf(w, "Bucket '%s' created successfully!\n", bucketName)
-	return
 }

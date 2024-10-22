@@ -53,7 +53,7 @@ func DeleteBucketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bucketDir := filepath.Join("data", bucketName)
+	bucketDir := filepath.Join(helpers.BucketPath, bucketName)
 	if err := os.RemoveAll(bucketDir); err != nil {
 		http.Error(w, "Failed to delete bucket directory\n", http.StatusInternalServerError)
 		return

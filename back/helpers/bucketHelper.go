@@ -10,10 +10,14 @@ import (
 	"triple-s/back/models"
 )
 
-const bucketMetadataPath = "data/buckets.csv"
+var BucketPath string //"data/buckets.csv"
+var BucketMetadataPath string //"data/buckets.csv"
+
+
+
 
 func ReadBucketMetadata() ([]models.Bucket, error) {
-	file, err := os.Open(bucketMetadataPath)
+	file, err := os.Open(BucketMetadataPath)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +42,7 @@ func ReadBucketMetadata() ([]models.Bucket, error) {
 }
 
 func SaveBucketMetadata(buckets []models.Bucket) error {
-	file, err := os.Create(bucketMetadataPath)
+	file, err := os.Create(BucketMetadataPath)
 	if err != nil {
 		return err
 	}
@@ -74,7 +78,7 @@ func IsValidBucketName(name string) bool {
 }
 
 func IsBucketEmpty(bucketName string) bool {
-	csvPath := filepath.Join("data", bucketName, "objects.csv")
+	csvPath := filepath.Join(BucketPath, bucketName, "objects.csv")
 	file, err := os.Open(csvPath)
 	if err != nil {
 		return true
