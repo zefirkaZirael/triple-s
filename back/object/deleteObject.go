@@ -40,6 +40,10 @@ func DeleteObject(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to update metadata\n", http.StatusInternalServerError)
 		return
 	}
+	if err := helpers.UpdateLastModified(bucketName); err != nil {
+		http.Error(w, "Failed to update LastModified\n", http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -75,7 +79,6 @@ func removeObjectMetadata(w http.ResponseWriter, bucketDir, objKey string) error
 
 		if record[0] != objKey { // Keep entries that don't match objKey
 			if err := writer.Write(record); err != nil {
-				http.Error(w, "hz rerr\n", http.StatusInternalServerError)
 				return err
 			}
 		}
@@ -86,7 +89,6 @@ func removeObjectMetadata(w http.ResponseWriter, bucketDir, objKey string) error
 	}
 	// Replace the original CSV with the updated one
 	if err := os.Rename(tempPath, csvPath); err != nil {
-		http.Error(w, "replace err\n", http.StatusInternalServerError)
 		return err
 	}
 

@@ -51,6 +51,10 @@ func UploadObject(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to update object metadata\n", http.StatusInternalServerError)
 		return
 	}
+	if err := helpers.UpdateLastModified(bucketName); err != nil {
+		http.Error(w, "Failed to update LastModified\n", http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "Object '%s' uploaded successfully to bucket '%s'\n", objKey, bucketName)
 }
@@ -58,7 +62,7 @@ func UploadObject(w http.ResponseWriter, r *http.Request) {
 func appendObjectMetadata(bucketDir, objKey string, size int64, contentType string) error {
 	csvPath := filepath.Join(bucketDir, "objects.csv")
 
-	file, err := os.OpenFile(csvPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(csvPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}

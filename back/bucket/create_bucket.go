@@ -42,7 +42,7 @@ func CreateBucketHandler(w http.ResponseWriter, r *http.Request) {
 
 	bucketDir := filepath.Join("data/", bucketName)
 	// Create bucket
-	err := os.MkdirAll(bucketDir, 0755)
+	err := os.MkdirAll(bucketDir, 0o755)
 	if err != nil {
 		http.Error(w, "Failed to create bucket folder\n", http.StatusInternalServerError)
 		return

@@ -37,6 +37,10 @@ func DeleteBucketHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to update bucket status\n", http.StatusInternalServerError)
 			return
 		}
+		if err := helpers.UpdateLastModified(bucketName); err != nil {
+			http.Error(w, "Failed to update LastModified\n", http.StatusInternalServerError)
+			return
+		}
 		http.Error(w, fmt.Sprintf("Bucket '%s' not empty\n", bucketName), http.StatusConflict)
 		return
 	}

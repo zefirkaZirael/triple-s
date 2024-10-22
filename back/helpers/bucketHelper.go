@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"time"
 	"triple-s/back/models"
 )
 
@@ -93,4 +94,20 @@ func IsBucketEmpty(bucketName string) bool {
 	}
 	// Default empty
 	return true
+}
+
+func UpdateLastModified(bucketName string) error {
+	buckets, err := ReadBucketMetadata()
+	if err != nil {
+		return err
+	}
+
+	for i, bucket := range buckets {
+		if bucket.Name == bucketName {
+			buckets[i].LastModifiedTime = time.Now().Format(time.RFC3339)
+			break
+		}
+	}
+
+	return SaveBucketMetadata(buckets)
 }
