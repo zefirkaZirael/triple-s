@@ -1,0 +1,3 @@
+http://localhost:8080/
+curl -X PUT http://localhost:8080/mybucket1
+curl -X GET http://localhost:8080/
