@@ -27,20 +27,20 @@ func UploadObject(w http.ResponseWriter, r *http.Request) {
 	// Step 3
 	objectPath := filepath.Join(bucketDir, objKey)
 	if _, err := os.Stat(objectPath); !os.IsNotExist(err) {
-		http.Error(w, "Object already exists\n", http.StatusConflict)
+		helpers.XMLResponse(w, http.StatusConflict, "Object already exists")
 		return
 	}
 
 	file, err := os.Create(objectPath)
 	if err != nil {
-		http.Error(w, "Failed to save object\n", http.StatusInternalServerError)
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to save object")
 		return
 	}
 	defer file.Close()
 
 	size, err := io.Copy(file, r.Body)
 	if err != nil {
-		http.Error(w, "Failed to write object data\n", http.StatusInternalServerError)
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to write object datan")
 		return
 	}
 
@@ -48,15 +48,15 @@ func UploadObject(w http.ResponseWriter, r *http.Request) {
 	r.Body.Read(make([]byte, 512))
 	// Save object metadata to CSV
 	if err := appendObjectMetadata(bucketDir, objKey, size, contentType); err != nil {
-		http.Error(w, "Failed to update object metadata\n", http.StatusInternalServerError)
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to update object metadata")
 		return
 	}
 	if err := helpers.UpdateLastModified(bucketName); err != nil {
-		http.Error(w, "Failed to update LastModified\n", http.StatusInternalServerError)
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to update LastModified")
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Object '%s' uploaded successfully to bucket '%s'\n", objKey, bucketName)
+	helpers.XMLResponse(w, http.StatusOK, fmt.Sprintf("Object '%s' uploaded successfully to bucket '%s'", objKey, bucketName))
 }
 
 func appendObjectMetadata(bucketDir, objKey string, size int64, contentType string) error {

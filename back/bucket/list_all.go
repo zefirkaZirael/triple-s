@@ -10,8 +10,7 @@ import (
 func ListBuckets(w http.ResponseWriter, r *http.Request) {
 	buckets, err := helpers.ReadBucketMetadata()
 	if err != nil {
-		http.Error(w, "Failed to read bucket metadata\n", http.StatusInternalServerError)
-		return
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to read bucket metadata")
 	}
 
 	response := models.ListBucketResponse{Buckets: buckets}
@@ -21,6 +20,6 @@ func ListBuckets(w http.ResponseWriter, r *http.Request) {
 	encoder.Indent("", "  ")
 
 	if err := xml.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Failed to encode XML\n", http.StatusInternalServerError)
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to encode XML")
 	}
 }

@@ -27,21 +27,21 @@ func DeleteObject(w http.ResponseWriter, r *http.Request) {
 	objectPath := filepath.Join(bucketDir, objKey)
 
 	if _, err := os.Stat(objectPath); os.IsNotExist(err) {
-		http.Error(w, "Object not found\n", http.StatusNotFound)
+		helpers.XMLResponse(w, http.StatusNotFound, "Object not found")
 		return
 	}
 
 	if err := os.Remove(objectPath); err != nil {
-		http.Error(w, "Failed to delete object\n", http.StatusInternalServerError)
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to delete object")
 		return
 	}
 
 	if err := removeObjectMetadata(w, bucketDir, objKey); err != nil {
-		http.Error(w, "Failed to update metadata\n", http.StatusInternalServerError)
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to update metadata")
 		return
 	}
 	if err := helpers.UpdateLastModified(bucketName); err != nil {
-		http.Error(w, "Failed to update LastModified\n", http.StatusInternalServerError)
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to update LastModified")
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)

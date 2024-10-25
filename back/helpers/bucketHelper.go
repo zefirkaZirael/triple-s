@@ -10,11 +10,10 @@ import (
 	"triple-s/back/models"
 )
 
-var BucketPath string //"data/buckets.csv"
-var BucketMetadataPath string //"data/buckets.csv"
-
-
-
+var (
+	BucketPath         string //"data/buckets.csv"
+	BucketMetadataPath string //"data/buckets.csv"
+)
 
 func ReadBucketMetadata() ([]models.Bucket, error) {
 	file, err := os.Open(BucketMetadataPath)
@@ -66,7 +65,7 @@ func SaveBucketMetadata(buckets []models.Bucket) error {
 
 func IsValidBucketName(name string) bool {
 	// Regular expression for bucket name validation
-	validNamePattern := `^[a-z0-9](?:[a-z0-9.-]{1,61}[a-z0-9])?$`
+	validNamePattern := `^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$`
 	matched, _ := regexp.MatchString(validNamePattern, name)
 
 	// Check for IP address format (simple check)

@@ -12,7 +12,7 @@ func DeleteBucketHandler(w http.ResponseWriter, r *http.Request) {
 	bucketName := r.URL.Path[1:]
 	buckets, err := helpers.ReadBucketMetadata()
 	if err != nil {
-		http.Error(w, "Failed to read bucket metadata\n", http.StatusInternalServerError)
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to read bucket metadata")
 		return
 	}
 	var bExist bool
@@ -27,21 +27,21 @@ func DeleteBucketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !bExist {
-		http.Error(w, fmt.Sprintf("Bucket '%s' not found\n", bucketName), http.StatusNotFound)
+		helpers.XMLResponse(w, http.StatusNotFound, fmt.Sprintf("Bucket '%s' not found", bucketName))
 		return
 	}
 
 	if !helpers.IsBucketEmpty(bucketName) {
 		buckets[bIndex].Status = "marked for deletion"
 		if err := helpers.SaveBucketMetadata(buckets); err != nil {
-			http.Error(w, "Failed to update bucket status\n", http.StatusInternalServerError)
+			helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to update bucket status")
 			return
 		}
 		if err := helpers.UpdateLastModified(bucketName); err != nil {
-			http.Error(w, "Failed to update LastModified\n", http.StatusInternalServerError)
+			helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to update LastModified")
 			return
 		}
-		http.Error(w, fmt.Sprintf("Bucket '%s' not empty\n", bucketName), http.StatusConflict)
+		helpers.XMLResponse(w, http.StatusConflict, fmt.Sprintf("Bucket '%s' not empty", bucketName))
 		return
 	}
 
@@ -49,13 +49,13 @@ func DeleteBucketHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = helpers.SaveBucketMetadata(buckets)
 	if err != nil {
-		http.Error(w, "Failed to save bucket metadata\n", http.StatusInternalServerError)
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to save bucket metadata")
 		return
 	}
 
 	bucketDir := filepath.Join(helpers.BucketPath, bucketName)
 	if err := os.RemoveAll(bucketDir); err != nil {
-		http.Error(w, "Failed to delete bucket directory\n", http.StatusInternalServerError)
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to delete bucket directory")
 		return
 	}
 	// fmt.Fprintf(w, "Bucket '%s' deleted successfully!\n", bucketName)

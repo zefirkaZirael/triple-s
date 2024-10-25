@@ -23,3 +23,9 @@ func BucketExists(bucketName string) (string, error) {
 	}
 	return bucketDir, nil
 }
+
+func XMLResponse(w http.ResponseWriter, status int, message string) {
+	w.Header().Set("Content-Type", "application/xml")
+	w.WriteHeader(status)
+	fmt.Fprintf(w, "<response>\n\t<message>%s</message>\n</response>\n", message)
+}

@@ -28,10 +28,10 @@ func RetrieveObject(w http.ResponseWriter, r *http.Request) {
 
 	file, err := os.Open(objectPath)
 	if os.IsNotExist(err) {
-		http.Error(w, "File not found\n", http.StatusNotFound)
+		helpers.XMLResponse(w, http.StatusNotFound, "File not found")
 		return
 	} else if err != nil {
-		http.Error(w, "Fail to open file\n", http.StatusInternalServerError)
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Fail to open file")
 		return
 	}
 	defer file.Close()
@@ -43,7 +43,8 @@ func RetrieveObject(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", contentType)
 	if _, err := io.Copy(w, file); err != nil {
-		http.Error(w, "Failed to send object data\n", http.StatusInternalServerError)
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to send object data")
+		return
 	}
-	fmt.Fprintf(w, "Object '%s' retrieveed successfully from bucket '%s'\n", objKey, bucketName)
+	helpers.XMLResponse(w, http.StatusOK, fmt.Sprintf("Object '%s' retrieved successfully from bucket '%s'", objKey, bucketName))
 }
