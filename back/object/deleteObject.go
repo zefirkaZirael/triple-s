@@ -17,6 +17,11 @@ func DeleteObject(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	fmt.Println(objKey)
+	if objKey == "objects.csv" {
+		http.Error(w, "Cannot delete objects.csv", http.StatusForbidden)
+		return
+	}
 	// Step 2
 	bucketDir, err := helpers.BucketExists(bucketName)
 	if err != nil {
@@ -89,6 +94,10 @@ func removeObjectMetadata(w http.ResponseWriter, bucketDir, objKey string) error
 	}
 	// Replace the original CSV with the updated one
 	if err := os.Rename(tempPath, csvPath); err != nil {
+		return err
+	}
+	// Set the permissions of the CSV file to read-only
+	if err := os.Chmod(csvPath, 0444); err != nil { // Read-only for everyone
 		return err
 	}
 

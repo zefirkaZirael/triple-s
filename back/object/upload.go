@@ -26,10 +26,6 @@ func UploadObject(w http.ResponseWriter, r *http.Request) {
 	}
 	// Step 3
 	objectPath := filepath.Join(bucketDir, objKey)
-	if _, err := os.Stat(objectPath); !os.IsNotExist(err) {
-		helpers.XMLResponse(w, http.StatusConflict, "Object already exists")
-		return
-	}
 
 	file, err := os.Create(objectPath)
 	if err != nil {
@@ -40,7 +36,7 @@ func UploadObject(w http.ResponseWriter, r *http.Request) {
 
 	size, err := io.Copy(file, r.Body)
 	if err != nil {
-		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to write object datan")
+		helpers.XMLResponse(w, http.StatusInternalServerError, "Failed to write object data")
 		return
 	}
 
